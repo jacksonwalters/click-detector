@@ -1,7 +1,12 @@
-function TOA=EL_click_Detector_server(SNR_window,SNR_thresh,Fs,F_ds,Y_filtered,Plot_flag,MP_thresh,W_seg,consistency_T,ICI_max_echo,ICI_min_echo,Th_echo)
+function [TOA,ToA_separated]=EL_click_Detector_server(SNR_window,SNR_thresh,Fs,F_ds,Y_filtered,Plot_flag,MP_thresh,W_seg,consistency_T,ICI_max_echo,ICI_min_echo,Th_echo,Detection_threshold)
+  
+% SNR_window=SNR_window_echo;
+% SNR_thresh=SNR_thresh_echo;
+% consistency_T=consistency_T_echo;
 
 
-
+criteria1=1; %ICI clustering criteria: 1 for largest cluster size, 0 for largest size of all clusters 
+ToA_separated={};
         FA=zeros(9,20);
         Valid_flag=0;
         TOA={};
@@ -52,7 +57,7 @@ function TOA=EL_click_Detector_server(SNR_window,SNR_thresh,Fs,F_ds,Y_filtered,P
            %% Show plots for the transient detection stage
 
         if Plot_flag==1
-            hold on; plot(Locs,Pks,'x')    
+            hold on; plot(Locs,Pks,'x')  
         end
         
 
@@ -75,7 +80,7 @@ function TOA=EL_click_Detector_server(SNR_window,SNR_thresh,Fs,F_ds,Y_filtered,P
                 l2=lim_d(1);                
                 Features=Features_phase;
                 
-                for Li=1:9                   
+                for Li=Detection_threshold:Detection_threshold                   
                     l1=lim_d(1);
                     l2=lim_d(Li);
                     l3=lim_u(Li);
@@ -107,7 +112,7 @@ function TOA=EL_click_Detector_server(SNR_window,SNR_thresh,Fs,F_ds,Y_filtered,P
                            [Times,I_Times]=sort(MP_t(cell2mat(C_inds)));
                            Po=MP_p(cell2mat(C_inds));
                            Powers=Po(I_Times);
-                           [~,Final_seq]=ICI_extract_Sequence2(time,ey_norm,Times,Powers,Y_zoom,F_ds,consistency_T,ICI_max_echo,ICI_min_echo,Th_echo);   % Run click trains detector 
+                           [~,Final_seq,~,~]=ICI_extract_Sequence2(time,ey_norm,Times,Powers,Y_zoom,F_ds,consistency_T,ICI_max_echo,ICI_min_echo,Th_echo);   % Run click trains detector 
                            Groups={Times(Final_seq)};
                            Groups_pks={Powers(Final_seq)};                                                                                
                            Detected_Echos=sort(cell2mat(Groups));
@@ -144,7 +149,7 @@ function TOA=EL_click_Detector_server(SNR_window,SNR_thresh,Fs,F_ds,Y_filtered,P
                             end
                             if ~isempty(MP_t)
                                Final_seq=[];
-                               [~,Final_seq]=ICI_extract_Sequence2(time,ey_norm,MP_t,MP_p,Y_zoom,F_ds,consistency_T,ICI_max_echo,ICI_min_echo,Th_echo);   % Run click trains detector 
+                               [~,Final_seq,class_max,class_sum]=ICI_extract_Sequence2(time,ey_norm,MP_t,MP_p,Y_zoom,F_ds,consistency_T,ICI_max_echo,ICI_min_echo,Th_echo);   % Run click trains detector 
                                Detected_Echos=MP_t(Final_seq);
                                Detected_Echos_pks=MP_p(Final_seq);
                                TOA={Detected_Echos};
@@ -152,26 +157,50 @@ function TOA=EL_click_Detector_server(SNR_window,SNR_thresh,Fs,F_ds,Y_filtered,P
                                Detected_Echos=[];
                                Detected_Echos_pks=[];
                                TOA={Detected_Echos};                                                              
-                           end
-%                                         
-%               
-              if Plot_flag
-                  subplot(4,1,4);
+                            end
+             
+                            if criteria1
+                                class=class_max;
+                            else
+                                class=class_sum;
+                            end
+%             
+               
+
                   Time_of_arrival=cell2mat(Groups);
                   Peak_of_arrival=cell2mat(Groups_pks);
-                  subplot(4,1,4); plot(time,ey_norm); hold on;
-                  if ~isempty(Detected_Echos)
-                     plot(Detected_Echos,Detected_Echos_pks,'go','Linewidth',2);
+                  if Plot_flag
+                      subplot(4,1,4);
+                      subplot(4,1,4); plot(time,ey_norm); hold on;
                   end
-%                   plot(Time_of_arrival,Peak_of_arrival,'go','Linewidth',2)
-                  xlabel('time [sec]'); ylabel('TKEO'); ylim([0 1]);
-                  legend('','Echolocation clicks');
+                  if ~isempty(Detected_Echos)
+%                      plot(Detected_Echos,Detected_Echos_pks,'go','Linewidth',2);
+                     if Plot_flag
+                        legendInfo{1} = [''];
+                     end
+                     for i=1:size(class,2)
+                         ToA_separated(i)={MP_t(cell2mat(class(i)))};
+                         if Plot_flag
+                             hold on; plot(cell2mat(ToA_separated(i)),MP_p(cell2mat(class(i))),'o','Linewidth',2)    
+                             legendInfo{i+1} = ['SW ' num2str(i)];
+                         end
+                     end
+                     if Plot_flag
+                        legend(legendInfo)
+                     end
+                  end
+                  if Plot_flag
+    %                   plot(Time_of_arrival,Peak_of_arrival,'go','Linewidth',2)
+                      xlabel('time [sec]'); ylabel('TKEO'); ylim([0 1]); title('Detected echolocation clicks');
+    %                   legend('','Echolocation clicks');
+                  end
               end
               
-            end
-        
-        
 end
+            
+        
+        
+
                
            
 
