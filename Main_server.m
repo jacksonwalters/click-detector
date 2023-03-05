@@ -1,15 +1,17 @@
 clear all; clc;
 
 Program_folder=pwd;
-% files = dir('twowhales*.flac');
-files = dir('twowhales*.flac');
+files = dir('SW_1_filtered*.wav');
+% files = dir('10M_ch2_0-5*.wav');
+% files = dir('codas*.wav');
+% files = dir('AMAR1*.flac');
 
  
     %% Pick Detector
 
     Detector_flag=0; % customized for buoy recievers: 1- apply coda detector | 0- apply echolocation clicks detector
     Plot_flag=1;     % 1- show detection figures | 0- dont show
-    Tag_flag=1;    % 1- customized for Dtags: set to 1 for recordings from tags.
+    Tag_flag=0;    % 1- customized for tags: set to 1 for recordings from tags.
     Error_flag=length(files);
 
     %% Check filename:
@@ -63,7 +65,7 @@ files = dir('twowhales*.flac');
             TOA_other_whale=[];
             TOA_other=[];
 
-            for Buffer_ind=1:NOI
+            for Buffer_ind=2:2 %NOI
                 Y_filtered=bandpass(Y_decimated(int32((Buffer_ind-1)*T+1):int32((Buffer_ind-1)*T+T)),[F_low, F_high],F_ds);     % Aply band pass filter and extract buffer                             
                 if Tag_flag
                     [~,TOA,TOA_other]=Run_Detector_server(Y_filtered,Fs,F_ds,Detector_flag,Plot_flag,Tag_flag);  % Run detection
