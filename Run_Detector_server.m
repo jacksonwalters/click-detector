@@ -1,5 +1,5 @@
-function [TOA,TOA_tag,TOA_other]=Run_Detector_server(Y_filtered,Fs,F_ds,Detector_flag,Plot_flag,Tag_flag)
-%
+function [ToA_separated,TOA,TOA_tag,TOA_other,Coda_Type_on_Whale,Coda_Type_off_Whale]=Run_Detector_server(Y_filtered,Fs,F_ds,Detector_flag,Plot_flag,Tag_flag)
+
 %Description:
 %This function gets a signal buffer of M secons and outputs a vector
 %contains the time of arrivals of detected sperm whale Codas/Echolocation clicks, 
@@ -13,6 +13,12 @@ function [TOA,TOA_tag,TOA_other]=Run_Detector_server(Y_filtered,Fs,F_ds,Detector
 %Output:
 % TOA - Vector of MX1 with time of arrival in seconds for M detections
 
+ToA_separated=[]; 
+TOA=[];
+TOA_tag={};
+TOA_other={};
+Coda_Type_on_Whale={};
+Coda_Type_off_Whale={};
 
 %% Run detector over each analysis window
     
@@ -36,7 +42,7 @@ function [TOA,TOA_tag,TOA_other]=Run_Detector_server(Y_filtered,Fs,F_ds,Detector
 
         %% Echolocation detector parameters:
         
-        ICI_max_echo=1.8;                           % set maximal allowed ICI
+        ICI_max_echo=1.8;  %1.8;                           % set maximal allowed ICI
         ICI_min_echo=0.42;                          % set minimum allowed ICI
         consistency_T_echo=0.22;                    % set maximal allowd consistency parameter        
         SNR_window_echo=F_ds*50e-3;                 % Define time window for SNR calculation of each detected transient
@@ -47,21 +53,26 @@ function [TOA,TOA_tag,TOA_other]=Run_Detector_server(Y_filtered,Fs,F_ds,Detector
         TOA=[];
         TOA_tag=[];
         TOA_other=[];
+        Detection_threshold=9;
         
        %% Select and run detector
        
-        if Detector_flag
-            [Coda_save,TOA]=Coda_click_Detector(SNR_window_coda,SNR_thresh_coda,F_ds,Y_filtered,Plot_flag,MP_thresh,W_seg,Dt_coda,fois_coda,wind,ICI_max_coda,ICI_min_coda,Th_coda,E_th,consistency_T_coda);
-            Codas_info={Coda_save};       
-        else
+ 
             if Tag_flag
-            [TOA_tag,TOA_other]=EL_click_Detector_tags(F_ds,Y_filtered,Plot_flag,consistency_T_echo,ICI_max_echo,ICI_min_echo,Th_echo,MP_thresh,W_seg);
+                if Detector_flag
+                    [TOA_tag,TOA_other,Coda_Type_on_Whale,Coda_Type_off_Whale]=Coda_detector_tags(F_ds,Y_filtered,Plot_flag,W_seg,SNR_window_echo,SNR_thresh_echo);                    
+                else
+                    [TOA_tag,TOA_other]=EL_click_Detector_tags(F_ds,Y_filtered,Plot_flag,consistency_T_echo,ICI_max_echo,ICI_min_echo,Th_echo,MP_thresh,W_seg);
+                end                    
+            elseif Detector_flag
+                   [Coda_save,TOA]=Coda_click_Detector(SNR_window_coda,SNR_thresh_coda,F_ds,Y_filtered,Plot_flag,MP_thresh,W_seg,Dt_coda,fois_coda,wind,ICI_max_coda,ICI_min_coda,Th_coda,E_th,consistency_T_coda);
+                   Codas_info={Coda_save};     
             else
-            detections=EL_click_Detector_server(SNR_window_echo,SNR_thresh_echo,Fs,F_ds,Y_filtered,Plot_flag,MP_thresh,W_seg,consistency_T_echo,ICI_max_echo,ICI_min_echo,Th_echo); 
-            TOA=cell2mat(detections);
+                [detections,ToA_separated]=EL_click_Detector_server(SNR_window_echo,SNR_thresh_echo,Fs,F_ds,Y_filtered,Plot_flag,MP_thresh,W_seg,consistency_T_echo,ICI_max_echo,ICI_min_echo,Th_echo,Detection_threshold);                  
+                TOA=cell2mat(detections);
             end                           
         end
 
     
-end
+
 

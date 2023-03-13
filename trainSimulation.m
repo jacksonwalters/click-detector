@@ -21,8 +21,6 @@ for j=1:52
     end    
 end
 
-
-
 Gt=0.6;
 
 for j=1:29
@@ -31,18 +29,9 @@ end
 
 figure; plot(5:33,Pfa,'x--','Linewidth',2)
 
-
-
-
-
-
-
-
-
 figure; 
 subplot(1,2,1); plot(F3(:,1),F3(:,2),'.'); axis([0 10 0 10]);
 subplot(1,2,2); plot(FS(:,1),FS(:,2),'.');  axis([0 10 0 10]);
-
 
 [~,I]=sort(F3(:,3));
 

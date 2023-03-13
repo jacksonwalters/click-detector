@@ -1,5 +1,16 @@
-function [Send_seq,Send_seq2]=ICI_extract_Sequence2(time,ey_norm,locs,pks,Y_zoom,F_ds,consistency_T,ICI_max,ICI_min,Th)
+function [Send_seq,Send_seq2,class_max,class_sum]=ICI_extract_Sequence2(time,ey_norm,locs,pks,Y_zoom,F_ds,consistency_T,ICI_max,ICI_min,Th)
 
+%  locs=Times; pks=Powers;
+%                             
+% Th=Th_echo;
+% ICI_min=ICI_min_echo;               
+% ICI_max=ICI_max_echo;
+% 
+% locs=[]; locs=Locs;
+% pks=[]; pks=Pks;
+
+    no_clusters_flag=0;
+    class_max={}; class_sum={};
     Final_seq={}; Final_ICI={}; Final_L={};  Compare=[];  Candidate_Trains={}; Send_seq=[];
     Send_seq2=[]; Compare2=[];  Candidate_Trains2={};
     T_locs=locs;
@@ -132,6 +143,8 @@ function [Send_seq,Send_seq2]=ICI_extract_Sequence2(time,ey_norm,locs,pks,Y_zoom
                         init=init+1;
             end
             
+            Cluster_cands(Q)={Final_seq(find(~cellfun(@isempty,Final_seq)))};
+            
             S_index=find(L1==max(L1));
             Candidate_Trains(Q)={cell2mat(Final_seq(S_index(1)))};
             Compare(Q)=max(L1);
@@ -140,19 +153,51 @@ function [Send_seq,Send_seq2]=ICI_extract_Sequence2(time,ey_norm,locs,pks,Y_zoom
             Compare2(Q)=sum(L1);
             L1=[];
        end
-      
-       Final_selection=find(Compare==max(Compare));
-       Final_selection2=find(Compare2==max(Compare2));
-       if ~isempty(Final_selection)
-          Send_seq=Candidate_Trains(Final_selection(1));
+       
+       
+       if ~isempty(Compare) && sum(Compare)>0
+           no_clusters_flag=1;
+           Final_selection=find(Compare==max(Compare));
+           Final_selection2=find(Compare2==max(Compare2));
+           if ~isempty(Final_selection)
+              Send_seq=Candidate_Trains(Final_selection(1));
+           end
+           if ~isempty(Final_selection2)
+              Send_seq2=Candidate_Trains2(Final_selection2(1));
+           end       
+
+           Send_seq2=cell2mat(Send_seq2);
+       else
+           no_clusters_flag=0;
        end
-       if ~isempty(Final_selection2)
-          Send_seq2=Candidate_Trains2(Final_selection2(1));
-       end       
+    end
     
-    Send_seq2=cell2mat(Send_seq2);
+    if no_clusters_flag
+        for i=1:length(Cluster_cands{Final_selection(1)})
+            class_max(i)={Cluster_cands{Final_selection(1)}{i}};
+        end
+
+        if length(Final_selection2)>1
+            for j=1:length(Final_selection2)
+                cellsz = cellfun(@length,Cluster_cands{Final_selection2(j)},'uni',false);
+                Lj(j)=max([cellsz{:}]);
+            end
+            pick=find(Lj==max(Lj));
+            for i=1:length(Cluster_cands{Final_selection2(pick(1))})
+                class_sum(i)={Cluster_cands{Final_selection2(pick(1))}{i}};
+            end        
+        else
+            for i=1:length(Cluster_cands{Final_selection2})
+                class_sum(i)={Cluster_cands{Final_selection2}{i}};
+            end
+        end
     end
 
+    
+    
+    
+    
+    
     %% Extract the taged clicks
 % %         peaks_tag=find(Compare==max(Compare));
 %         for i=1:length(Compare)

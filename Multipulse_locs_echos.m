@@ -1,4 +1,4 @@
-function [SW_click_inds, SW_click_pks,IPI]=Multipulse_locs_echos(Y_zoom,ey_norm,locs,pks,Fs,F_ds,W_seg,MP_thresh,Plot_flag)
+function [SW_click_inds, SW_click_pks,IPI]=Multipulse_locs_echos(Y_zoom,ey_norm,locs,pks,F_ds,W_seg,MP_thresh,Plot_flag)
 
 % locs=Locs; pks=Pks;
 IPI_auto=[]; IPI_cep=[];
@@ -7,8 +7,8 @@ IPI_auto=[]; IPI_cep=[];
     SW_click_inds=[]; SW_click_pks=[]; d_P1=0; d_P0=[];f_P0=[]; f_P1=[];
     Feature_ind=0; E_ratio=[]; IPI=[];
     
-    seg_ds=round(W_seg*F_ds); seg_ds2=round(W_seg*Fs);
-    locs_samples=locs*F_ds; locs_samples2=locs*Fs;
+    seg_ds=round(W_seg*F_ds); 
+    locs_samples=locs*F_ds; 
     time=[0:1/F_ds:(1/F_ds)*(length(ey_norm)-1)];
     
     for ind=1:length(locs)
