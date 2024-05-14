@@ -64,7 +64,7 @@ Valid_flag=0;
 
             %% Multipulse Detection Stage
 
-            [MP_t,MP_p,MP_thresh_vals,IPI,IPI_auto]=Multipulse_locs_echos(Y_zoom_raw,Y_zoom,ey_norm,Locs,Pks,Fs,F_ds,W_seg,MP_thresh,Plot_flag);  % Run multipulse detector
+            [MP_t,MP_p,IPI]=Multipulse_locs_echos(Y_zoom,ey_norm,Locs,Pks,F_ds,W_seg,MP_thresh,Plot_flag);  % Run multipulse detector. too many inputs: [Y_zoom_raw, F_s]. too many outputs: [MP_thresh_vals]
             IPI_auto=abs(IPI_auto);
         
 %        figure; 

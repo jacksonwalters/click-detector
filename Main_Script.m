@@ -1,9 +1,9 @@
 clear all; clc;
 
 Program_folder=pwd;                                     % current folder
-% files = dir('SW*.flac');
+files = dir('SW*.wav');
 % files = dir('AMAR*.flac');
-files = dir('10M*.wav');
+% files = dir('10M*.wav');
 
 %% Pick Detector
 
@@ -35,6 +35,7 @@ Gather_IPI=[]; Gather_IPI_auto=[]; Gather_Features=[];
 for file_ind=1:length(files)
     
     filename=files(file_ind).name;
+    disp(filename);
     filesave=[Program_folder '\' filename '.xls'];
     
     Audio_name=[strfind(filename, 'flac') strfind(filename, 'wav')];
@@ -73,7 +74,7 @@ for file_ind=1:length(files)
             if ~isempty(DetectOtherWhale)
                 writematrix(DetectOtherWhale',filesave); % Save time of arrivals of the detected 'other whales clicks'
             end
-         elseif ~isempty(Gather_TOA)               
+         elseif ~isempty(Gather_TOA)
                  writematrix(Gather_TOA',filesave);  % Save time of arrivals of the detected clicks                                                              
          end 
 
